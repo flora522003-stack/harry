@@ -10,43 +10,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download card PDFs
+      - name: Download and render card PDFs
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p /tmp/cards
+          mkdir -p /tmp/cards .inspection/pages
           gh release download 1.0 --pattern '*.pdf' --dir /tmp/cards
           python -m pip install pymupdf pillow
-      - name: Inspect PDFs and make previews
-        run: |
-          mkdir -p .inspection
           python - <<'PY'
-          import pymupdf as fitz, glob, os, json
-          from PIL import Image, ImageDraw
-          files=sorted(glob.glob('/tmp/cards/*.pdf'))
-          summary=[]
-          sheets=[]
-          for path in files:
-              doc=fitz.open(path)
-              data={'name':os.path.basename(path),'pages':[]}
-              for index,page in enumerate(doc):
-                  data['pages'].append({'size':list(page.rect),'images':page.get_image_info(), 'text':page.get_text()[:1000]})
-                  pix=page.get_pixmap(matrix=fitz.Matrix(.65,.65),alpha=False)
-                  im=Image.frombytes('RGB',(pix.width,pix.height),pix.samples)
-                  im.thumbnail((440,450))
-                  sheets.append((f'{os.path.basename(path)} page {index+1}',im))
-              summary.append(data)
-          open('.inspection/info.json','w').write(json.dumps(summary,indent=2,default=lambda o:o.hex() if isinstance(o,bytes) else str(o)))
-          for n in range(0,len(sheets),12):
-              subset=sheets[n:n+12]; canvas=Image.new('RGB',(3*460,4*490),'white'); draw=ImageDraw.Draw(canvas)
-              for i,(name,im) in enumerate(subset):
-                  x=(i%3)*460; y=(i//3)*490; draw.text((x+5,y+5),name,fill='black'); canvas.paste(im,(x+5,y+30))
-              canvas.save(f'.inspection/preview-{n//12}.jpg',quality=85)
+          import pymupdf as fitz, glob, os
+          from PIL import Image
+          for name in glob.glob('/tmp/cards/*.pdf'):
+              doc=fitz.open(name); pix=doc[0].get_pixmap(matrix=fitz.Matrix(1.5,1.5),alpha=False)
+              Image.frombytes('RGB',(pix.width,pix.height),pix.samples).save('.inspection/pages/'+os.path.basename(name)+'.jpg',quality=91)
           PY
-      - name: Save inspection on the current branch
+      - name: Save previews
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .inspection
-          git commit -m 'Inspect release card PDFs'
+          git add .inspection/pages
+          git commit -m 'Render release card previews'
           git push origin HEAD:${{ github.ref_name }}
