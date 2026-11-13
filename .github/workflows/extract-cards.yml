@@ -21,7 +21,7 @@ jobs:
           mkdir extracted
           unzip -q cardsharry.zip -d extracted
           find extracted -type f | sort
-      - name: Upload original archive and extracted files
+      - name: Upload extracted source images
         uses: actions/upload-artifact@v4
         with:
           name: chocolate-frog-source-images
