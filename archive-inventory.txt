@@ -1,0 +1,16 @@
+albus_dumbledore.pdf
+bertie_botts.pdf
+filius_flitwick.pdf
+gilderoy_lockhart.pdf
+godric_gryffindor.pdf
+helga_hufflepuff.pdf
+horace_slughorn.pdf
+lord_voldemort.pdf
+minerva_mcgonagoll.pdf
+quirinus_quirrell.pdf
+rolanda_hooch.pdf
+rowena_ravenclaw.pdf
+rubeus_hagrid.pdf
+salazar_slytherin.pdf
+severus_snape.pdf
+sprout3.pdf
