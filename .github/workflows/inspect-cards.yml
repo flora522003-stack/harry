@@ -1,33 +1,28 @@
-name: Inspect card release
+name: Build duplex cards from release
 on:
   push:
     paths:
       - .github/workflows/inspect-cards.yml
+      - scripts/make_duplex.py
 permissions:
   contents: write
 jobs:
-  inspect:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download and render card PDFs
+      - name: Download release PDFs and build printable sheets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p /tmp/cards .inspection/pages
+          mkdir -p /tmp/cards
           gh release download 1.0 --pattern '*.pdf' --dir /tmp/cards
-          python -m pip install pymupdf pillow
-          python - <<'PY'
-          import pymupdf as fitz, glob, os
-          from PIL import Image
-          for name in glob.glob('/tmp/cards/*.pdf'):
-              doc=fitz.open(name); pix=doc[0].get_pixmap(matrix=fitz.Matrix(1.5,1.5),alpha=False)
-              Image.frombytes('RGB',(pix.width,pix.height),pix.samples).save('.inspection/pages/'+os.path.basename(name)+'.jpg',quality=91)
-          PY
-      - name: Save previews
+          python -m pip install pymupdf pillow numpy scipy
+          python scripts/make_duplex.py /tmp/cards
+      - name: Save finished PDF on this branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .inspection/pages
-          git commit -m 'Render release card previews'
+          git add print_ready/all_characters_A4_duplex.pdf
+          git commit -m 'Build A4 duplex sheets for all characters'
           git push origin HEAD:${{ github.ref_name }}
