@@ -5,7 +5,6 @@ Usage: python scripts/make_duplex.py /path/to/release-pdfs [output.pdf]
 Dependencies: PyMuPDF, Pillow, numpy, scipy.
 """
 import io
-import math
 import sys
 from pathlib import Path
 
@@ -42,7 +41,7 @@ def extract_sides(filename):
             continue
         ys, xs = bounds
         width, height = xs.stop - xs.start, ys.stop - ys.start
-        if width > 700 and height > 700:
+        if width > 1000 and height > 950:
             candidates.append((xs.start, ys.start, xs.stop, ys.stop))
     candidates.sort(key=lambda box: box[1])
     if len(candidates) != 2:
