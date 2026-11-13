@@ -1,0 +1,30 @@
+name: Extract Chocolate Frog cards
+on:
+  push:
+    paths:
+      - .github/workflows/extract-cards.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release archive
+        run: |
+          curl -L --fail --retry 3 \
+            -o cardsharry.zip \
+            https://github.com/flora522003-stack/harry/releases/download/1.0/cardsharry.zip
+      - name: Extract images
+        run: |
+          mkdir extracted
+          unzip -q cardsharry.zip -d extracted
+          find extracted -type f | sort
+      - name: Upload original archive and extracted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: chocolate-frog-source-images
+          path: extracted/
+          if-no-files-found: error
+          retention-days: 7
